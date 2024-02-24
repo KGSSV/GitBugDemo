@@ -1,0 +1,37 @@
+ 
+    name: CI/CD Pipeline
+
+        on:
+          push:
+            branches: [ master ]
+
+        jobs:
+          build:
+            runs-on: windows-latest
+
+            steps:
+            - uses: actions/checkout@v2
+
+            - name: Setup MSBuild
+              uses: microsoft/setup-msbuild@v1
+
+            - name: Build with MSBuild
+              run: msbuild /p:Configuration=Release /p:Platform="Any CPU"
+
+            - name: Test with VSTest
+              run: |
+                $testAssemblies = (Get-ChildItem -Recurse -Filter "*Tests.dll").FullName
+                vstest.console.exe /Platform:"Any CPU" /InIsolation /Logger:"trx" $testAssemblies
+
+            - name: Publish symbols
+              run: |
+                # Add your commands to publish symbols here
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                name: Build artifacts
+                path: |
+                  **/bin/
+                  **/obj/
+    
